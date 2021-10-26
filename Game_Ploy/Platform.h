@@ -12,6 +12,11 @@ public:
 	sf::RectangleShape body;
 
 	void update(float deltaTime);
+
+	float sumTimeErase;
+	void sumTime(float deltaTime){
+		sumTimeErase += deltaTime;
+	}
 private:
 	
 };

@@ -38,8 +38,8 @@ void ResizeView(const sf::RenderWindow& window, sf::View& view)
 
 int main()
 {
-    int Score = 0, TimeCandy = 0, TimeEnemy = 0, TimeCookie = 0;
-    float SumTime = 0.0f,MainTime = 120.0f;
+    int Score = 0, TimeCandy = 0, TimeEnemy = 0, TimeCookie = 0, TimeErase = 0, GameMode = 3;
+    float SumTime = 0.0f,MainTime = 100.0f;
     int R1 = 0,R2 = 0;
     sf::RenderWindow window(sf::VideoMode(VIEW_WIDTH, VIEW_HEIGHT), "Game's Ploy", sf::Style::Titlebar | sf::Style::Close | sf::Style::Fullscreen);
     //sf::View view(sf::Vector2f(0.0f, 0.0f), sf::Vector2f(1020, 1080));
@@ -54,20 +54,42 @@ int main()
     sf::Texture Cookie_pic;
         Cookie_pic.loadFromFile("Pic/Cookie.png");
     sf::Texture Bg;
-        Bg.loadFromFile("Pic/Bg.jpg");
+        Bg.loadFromFile("Pic/B2.png");
     sf::Texture st;
         st.loadFromFile("Pic/state.jpg");
+    sf::Texture s1_pic;
+        s1_pic.loadFromFile("Pic/Stick.png");
+    sf::Texture s2_pic;
+        s2_pic.loadFromFile("Pic/Stick.png");
+    sf::Texture b_pic;
+        b_pic.loadFromFile("Pic/c1.png");
+    sf::Texture c_pic;
+        c_pic.loadFromFile("Pic/Stick.png");
     sf::Texture Spider_pic;
         Spider_pic.loadFromFile("Pic/Spider.png");
     sf::Font Font;
         Font.loadFromFile("Font/Dog.ttf");
+    sf::Texture B_Score;
+        B_Score.loadFromFile("Pic/Score.png");
+    sf::Texture Sym1_Score_p;
+        Sym1_Score_p.loadFromFile("Pic/Clock.png");
+    sf::Texture Sym2_Score_p;
+        Sym2_Score_p.loadFromFile("Pic/2.png");
 
    
-    Player player(&playerTexture, sf::Vector2u(20, 3), 0.075f, 400.0f,200.0f);
+    Player player(&playerTexture, sf::Vector2u(20, 3), 0.075f, 400.0f,250.0f);
     
     std::vector<Platform> platforms,Item,Enemy,Candy,Pumpkin,Cookie;
     Platform Background(&Bg, sf::Vector2f(VIEW_WIDTH, VIEW_HEIGHT), sf::Vector2f(VIEW_WIDTH, VIEW_HEIGHT) / 2.0f);
-    Platform state(&st, sf::Vector2f(VIEW_WIDTH, 400), sf::Vector2f(VIEW_WIDTH/2.0f, VIEW_HEIGHT+20));
+    Platform state(&st, sf::Vector2f(VIEW_WIDTH, 400), sf::Vector2f(VIEW_WIDTH/2.0f, VIEW_HEIGHT+100));
+    Platform s1(&s1_pic, sf::Vector2f(300, 50), sf::Vector2f(400, 700));
+    Platform s2(&s1_pic, sf::Vector2f(300, 50), sf::Vector2f(1500, 700));
+    Platform b(&b_pic, sf::Vector2f(130, 130), sf::Vector2f(800, 915));
+    Platform c(&c_pic, sf::Vector2f(400, 50), sf::Vector2f(950, 480));
+    Platform Bg_Score(&B_Score, sf::Vector2f(250, 150), sf::Vector2f(280, 170));
+    Platform Bg_Score2(&B_Score, sf::Vector2f(250, 150), sf::Vector2f(1580, 170));
+    Platform Sym1_Score(&Sym1_Score_p, sf::Vector2f(80, 80), sf::Vector2f(1450, 170));
+    Platform Sym2_Score(&Sym2_Score_p, sf::Vector2f(100, 100), sf::Vector2f(430, 170));
     
     srand(time(NULL));
     float deltaTime = 0.0f;
@@ -89,150 +111,185 @@ int main()
                 window.close();
 
         }
-
-        SumTime += deltaTime;
-        if(SumTime >= 0.7f)
-        { 
-            R1 = rand() % 850 + 100;
-            MainTime-=0.5f;
-            if (MainTime < 0) MainTime = 0;
-            TimeCandy++;
-            TimeEnemy++;
-            TimeCookie++;
-            int x = rand() % 5;
-            if(x==0)
-                Item.push_back(Platform(&Choco, sf::Vector2f(80.0f, 80.0f), sf::Vector2f(R1, -100.0f)));
-            else if (x == 1 && TimeEnemy >= 2)
-            {
-                Enemy.push_back(Platform(&Spider_pic, sf::Vector2f(100.0f, 100.0f), sf::Vector2f(R1, -100.0f)));
-                TimeEnemy -= 2;
-            }
+        if (GameMode == 3)
+        {
+            SumTime += deltaTime;
+            if(SumTime >= 0.7f)
+            { 
+                R1 = rand() % 850 + 100;
+                R2 = rand() % 800 + 100;
+                MainTime-=0.5f;
+                if (MainTime < 0) MainTime = 0;
+                TimeErase++;
+                TimeCandy++;
+                TimeEnemy++;
+                TimeCookie++;
+                int x = rand() % 5;
+                if(x==0)
+                    Item.push_back(Platform(&Choco, sf::Vector2f(80.0f, 80.0f), sf::Vector2f(R1, -100.0f)));
+                else if (x == 1 && TimeEnemy >= 2)
+                {
+                    Enemy.push_back(Platform(&Spider_pic, sf::Vector2f(100.0f, 100.0f), sf::Vector2f(R1, -100.0f)));
+                    TimeEnemy -= 2;
+                }
                 
-            else if (x == 2 && TimeEnemy >= 2)
-            {
-                Pumpkin.push_back(Platform(&Pumpkin_pic, sf::Vector2f(100.0f, 100.0f), sf::Vector2f(R1, -100.0f)));
-                TimeEnemy -= 2;
-            }
+                else if (x == 2 && TimeEnemy >= 2)
+                {
+                    Pumpkin.push_back(Platform(&Pumpkin_pic, sf::Vector2f(100.0f, 100.0f), sf::Vector2f(R1, -100.0f)));
+                    TimeEnemy -= 2;
+                }
               
-            else if (x == 3 && TimeCandy >= 20)
-            {
-                TimeCandy -= 20;
-                Candy.push_back(Platform(&Candy_pic, sf::Vector2f(100.0f, 100.0f), sf::Vector2f(R1, -100.0f)));
+                else if (x == 3 && TimeCandy >= 15)
+                {
+                    TimeCandy -= 15;
+                    Candy.push_back(Platform(&Candy_pic, sf::Vector2f(100.0f, 100.0f), sf::Vector2f(R1, R2)));
+                }
+
+                else if (x == 4 && TimeCookie >= 20)
+                {
+                    TimeCookie -= 20;
+                    Cookie.push_back(Platform(&Cookie_pic, sf::Vector2f(100.0f, 100.0f), sf::Vector2f(R1, -100.0f)));
+                }
+
+                else Item.push_back(Platform(&Choco, sf::Vector2f(80.0f, 80.0f), sf::Vector2f(R1, -100.0f)));
+
+
+                R1 = rand() % 850 + 1000;
+                R2 = rand() % 800 + 100;
+                TimeErase++;
+                TimeCandy++;
+                TimeEnemy++;
+                TimeCookie++;
+                x = rand() % 5;
+                if (x == 0)
+                    Item.push_back(Platform(&Choco, sf::Vector2f(80.0f, 80.0f), sf::Vector2f(R1, -100.0f)));
+                else if (x == 1 && TimeEnemy >= 2)
+                {
+                    Enemy.push_back(Platform(&Spider_pic, sf::Vector2f(100.0f, 100.0f), sf::Vector2f(R1, -100.0f)));
+                    TimeEnemy -= 2;
+                }
+
+                else if (x == 2 && TimeEnemy >= 2)
+                {
+                    Pumpkin.push_back(Platform(&Pumpkin_pic, sf::Vector2f(100.0f, 100.0f), sf::Vector2f(R1, -100.0f)));
+                    TimeEnemy -= 2;
+                }
+
+                else if (x == 3 && TimeCandy >= 15)
+                {
+                    TimeCandy -= 15;
+                    Candy.push_back(Platform(&Candy_pic, sf::Vector2f(100.0f, 100.0f), sf::Vector2f(R1, R2)));
+                }
+
+                else if (x == 4 && TimeCookie >= 20)
+                {
+                    TimeCookie -= 20;
+                    Cookie.push_back(Platform(&Cookie_pic, sf::Vector2f(100.0f, 100.0f), sf::Vector2f(R1, -100.0f)));
+                }
+
+                else Item.push_back(Platform(&Choco, sf::Vector2f(80.0f, 80.0f), sf::Vector2f(R1, -100.0f)));
+                SumTime -= 0.7f;
             }
 
-            else if (x == 4 && TimeCookie >= 30)
-            {
-                TimeCookie -= 30;
-                Cookie.push_back(Platform(&Cookie_pic, sf::Vector2f(100.0f, 100.0f), sf::Vector2f(R1, -100.0f)));
-            }
-
-            else Item.push_back(Platform(&Choco, sf::Vector2f(80.0f, 80.0f), sf::Vector2f(R1, -100.0f)));
-
-
-            R1 = rand() % 850 + 1000;
-            TimeCandy++;
-            TimeEnemy++;
-            TimeCookie++;
-            x = rand() % 5;
-            if (x == 0)
-                Item.push_back(Platform(&Choco, sf::Vector2f(80.0f, 80.0f), sf::Vector2f(R1, -100.0f)));
-            else if (x == 1 && TimeEnemy >= 2)
-            {
-                Enemy.push_back(Platform(&Spider_pic, sf::Vector2f(100.0f, 100.0f), sf::Vector2f(R1, -100.0f)));
-                TimeEnemy -= 2;
-            }
-
-            else if (x == 2 && TimeEnemy >= 2)
-            {
-                Pumpkin.push_back(Platform(&Pumpkin_pic, sf::Vector2f(100.0f, 100.0f), sf::Vector2f(R1, -100.0f)));
-                TimeEnemy -= 2;
-            }
-
-            else if (x == 3 && TimeCandy >= 20)
-            {
-                TimeCandy -= 20;
-                Candy.push_back(Platform(&Candy_pic, sf::Vector2f(100.0f, 100.0f), sf::Vector2f(R1, -100.0f)));
-            }
-
-            else if (x == 4 && TimeCookie >= 30)
-            {
-                TimeCookie -= 30;
-                Cookie.push_back(Platform(&Cookie_pic, sf::Vector2f(100.0f, 100.0f), sf::Vector2f(R1, -100.0f)));
-            }
-
-            else Item.push_back(Platform(&Choco, sf::Vector2f(80.0f, 80.0f), sf::Vector2f(R1, -100.0f)));
-            SumTime -= 0.7f;
         }
         
+        
         //Update
-        player.Update(deltaTime);
+        if (GameMode == 3)
+        {
+            player.Update(deltaTime);
 
-         for (Platform& S : Item)
-            S.update(deltaTime);
+             for (Platform& S : Item)
+                S.update(deltaTime);
 
-         for (Platform& S : Enemy)
-             S.update(deltaTime);
+             for (Platform& S : Enemy)
+                 S.update(deltaTime);
 
-         for (Platform& S : Candy)
-             S.update(deltaTime);
+             for (Platform& S : Candy)
+                 S.sumTime(deltaTime);
 
-         for (Platform& S : Pumpkin)
-             S.update(deltaTime);
+             for (Platform& S : Pumpkin)
+                 S.update(deltaTime);
 
-         for (Platform& S : Cookie)
-             S.update(deltaTime);
+             for (Platform& S : Cookie)
+                 S.update(deltaTime);
+
+            
+        }
+        
 
         //ชน && +- Score
-        Collider playerCollision = player.GetCollider();
-        sf::Vector2f direction;
+        if (GameMode == 3)
+        {
+            Collider playerCollision = player.GetCollider();
+            sf::Vector2f direction;
 
-        for (Platform& S : Item)
-            if (S.GetCollider().CheckCollider(playerCollision))
-            {
-                S.body.setPosition(S.body.getPosition().x,1800.0f );
-                Score+=2; 
-            }
+            for (Platform& S : Item)
+                if (S.GetCollider().CheckCollider(playerCollision))
+                {
+                    S.body.setPosition(S.body.getPosition().x,1800.0f );
+                    Score+=2; 
+                }
         
-        for (Platform& S : Candy)
-            if (S.GetCollider().CheckCollider(playerCollision))
-            {
-                S.body.setPosition(S.body.getPosition().x, 1800.0f);
-                Score+=20;
+            for (Platform& S : Candy)
+                if (S.GetCollider().CheckCollider(playerCollision))
+                {
+                    S.body.setPosition(S.body.getPosition().x, 1800.0f);
+                    MainTime +=2.0f;
+                    
               
-            }
+                }
 
-        for (Platform& S : Enemy)
-            if (S.GetCollider().CheckCollider(playerCollision))
-            {
-                S.body.setPosition(S.body.getPosition().x, 1800.0f);
+            for (Platform& S : Enemy)
+                if (S.GetCollider().CheckCollider(playerCollision))
+                {
+                    S.body.setPosition(S.body.getPosition().x, 1800.0f);
                 
-                Score -= 5;
-                if (Score < 0) Score = 0;
-                MainTime -= 2.5f;
-            }
+                    Score -= 5;
+                    if (Score < 0) Score = 0;
+                    MainTime -= 2.5f;
+                }
 
-        for (Platform& S : Pumpkin)
-            if (S.GetCollider().CheckCollider(playerCollision))
-            {
-                S.body.setPosition(S.body.getPosition().x, 1800.0f);
-                if (Score < 0) Score = 0;
-                Score -= 10;
-                if (Score < 0) Score = 0;
-                MainTime -= 2.5f;
-                if (MainTime < 0) MainTime = 0;
-            }
+            for (Platform& S : Pumpkin)
+                if (S.GetCollider().CheckCollider(playerCollision))
+                {
+                    S.body.setPosition(S.body.getPosition().x, 1800.0f);
+                    if (Score < 0) Score = 0;
+                    Score -= 10;
+                    if (Score < 0) Score = 0;
+                    MainTime -= 2.5f;
+                    
+                }
 
-        for (Platform& S : Cookie)
-            if (S.GetCollider().CheckCollider(playerCollision))
-            {
-                S.body.setPosition(S.body.getPosition().x, 1800.0f);
-                MainTime += 10.0f;
-            }
-                
+            for (Platform& S : Cookie)
+                if (S.GetCollider().CheckCollider(playerCollision))
+                {
+                    S.body.setPosition(S.body.getPosition().x, 1800.0f);
+                    Score += 20;
+                }
+
+            if (MainTime <= 0) GameMode = 4;
  
-        if (state.GetCollider().CheckCollider(playerCollision, direction, 1.0f))
-            player.OnCollosion(direction);
+            if (state.GetCollider().CheckCollider(playerCollision, direction, 1.0f))
+                player.OnCollosion(direction);
 
+            if (s1.GetCollider().CheckCollider(playerCollision, direction, 1.0f))
+                player.OnCollosion(direction);
+
+            if (s2.GetCollider().CheckCollider(playerCollision, direction, 1.0f))
+                player.OnCollosion(direction);
+
+            if (c.GetCollider().CheckCollider(playerCollision, direction, 1.0f))
+                player.OnCollosion(direction);
+
+            if (b.GetCollider().CheckCollider(playerCollision, direction, 0.5f)) {
+                player.OnCollosion(direction);
+                
+            }
+                
+        }
+        
+        
         //delete
         while (!Item.empty() && (Item.front().body.getPosition().y > 1080.0f))
             Item.erase(Item.begin());
@@ -243,33 +300,53 @@ int main()
         while (!Pumpkin.empty() && (Pumpkin.front().body.getPosition().y > 1080.0f))
             Pumpkin.erase(Pumpkin.begin());
 
-        while (!Candy.empty() && (Candy.front().body.getPosition().y > 1080.0f))
+        while (!Candy.empty() && Candy[0].sumTimeErase >= 5) {
             Candy.erase(Candy.begin());
+        }
+            
 
         while (!Cookie.empty() && (Cookie.front().body.getPosition().y > 1080.0f))
             Cookie.erase(Cookie.begin());
 
         //Draw
+        
         window.clear(sf::Color(150,150,150));
-      
-        Background.Draw(window);
+        if (GameMode == 3)
+        {
+            Background.Draw(window);
+            b.Draw(window);
+            s1.Draw(window);
+            s2.Draw(window);
+            c.Draw(window);
+            for (Platform& S : Item)
+                S.Draw(window);
+            for (Platform& S : Enemy)
+                S.Draw(window);
+            for (Platform& S : Candy)
+                S.Draw(window);
+            for (Platform& S : Pumpkin)
+                S.Draw(window);
+            for (Platform& S : Cookie)
+                S.Draw(window);
+            state.Draw(window);
+            Bg_Score.Draw(window);
+            Bg_Score2.Draw(window);
+            Sym1_Score.Draw(window);
+            Sym2_Score.Draw(window);
+            
+            //Text
+            Showtexet(190, 110, Score, 90, window, &Font);
+            Showtexet(1510, 110, MainTime, 90, window, &Font);
 
-        for (Platform& S : Item)
-            S.Draw(window);
-        for (Platform& S : Enemy)
-            S.Draw(window);
-        for (Platform& S : Candy)
-            S.Draw(window);
-        for (Platform& S : Pumpkin)
-            S.Draw(window);
-        for (Platform& S : Cookie)
-            S.Draw(window);
-        state.Draw(window);
-        player.Draw(window);
+            player.Draw(window);
 
-        //Text
-        Showtexet(200, 100, Score, 100, window, &Font);
-        Showtexet(1500, 100, MainTime, 100, window, &Font);
+        }
+
+        if (GameMode == 4)
+        {
+            Background.Draw(window);
+        }
+        
         window.display();
     }
     return 0;
