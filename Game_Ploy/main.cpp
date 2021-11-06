@@ -1,4 +1,5 @@
-﻿#include <iostream>
+﻿#define _CRT_SECURE_NO_WARNINGS
+#include <iostream>
 #include <SFML\Graphics.hpp>
 #include "Animation.h"
 #include "Player.h"
@@ -10,10 +11,17 @@
 #include <utility>
 #include <string>
 #include <sstream>
+#include <algorithm>
 
 using namespace std;
 static const float VIEW_HEIGHT = 1080.0f;
 static const float VIEW_WIDTH = 1920.0f;
+
+void ResizeView(const sf::RenderWindow& window, sf::View& view)
+{
+    float aspectRatio = float(window.getSize().x) / float(window.getSize().y);
+    view.setSize(VIEW_HEIGHT * aspectRatio, VIEW_WIDTH);
+}
 
 void Showtexet(int x, int y, int num, int size, sf::RenderWindow& window, sf::Font* font)
 {
@@ -30,17 +38,76 @@ void Showtexet(int x, int y, int num, int size, sf::RenderWindow& window, sf::Fo
     window.draw(text);
 }
 
-void ResizeView(const sf::RenderWindow& window, sf::View& view)
+void ShowScoretexet(int x, int y, string word, int size,sf::Color color, sf::RenderWindow& window, sf::Font* font)
 {
-    float aspectRatio = float(window.getSize().x) / float(window.getSize().y);
-    view.setSize(VIEW_HEIGHT * aspectRatio, VIEW_WIDTH);
+    sf::Text text;
+    text.setFont(*font);
+    text.setPosition(x, y);
+    text.setString(word);
+    text.setCharacterSize(size);
+    text.setFillColor(color);
+    window.draw(text);
+    
 }
 
+void updatascore(string a, int b)
+{
+    FILE* fp;
+    char temp[255];
+    int score[6];
+    string name[6];
+    vector <pair<int, string>> userScore;
+    fp = fopen("score.txt", "r");
+    for (int i = 0; i < 5; i++)
+    {
+        fscanf(fp, "%s", &temp);
+        name[i] = temp;
+        fscanf(fp, "%d", &score[i]);
+        userScore.push_back(make_pair(score[i], name[i]));
+    }
+    name[5] = a;
+    score[5] = b;
+    userScore.push_back(make_pair(score[5], name[5]));
+    sort(userScore.begin(), userScore.end());
+    fclose(fp);
+    fopen("score.txt", "w");
+    for (int i = 5; i >= 1; i--)
+    {
+        strcpy(temp, userScore[i].second.c_str());
+        fprintf(fp, "%s %d\n", temp, userScore[i].first);
+    }
+    fclose(fp);
+}
+
+
+void Showscoreboard(sf::RenderWindow& window, float x)
+{
+    sf::Font font;
+    font.loadFromFile("Font/Dog.ttf");
+    FILE* fp;
+    char temp[255];
+    char score[255];
+    fp = fopen("score.txt", "r");
+    for (int i = 0; i < 5; i++)
+    {
+        char no[3] = { '1' + i };
+        no[1] = '.';
+        no[2] = '\0';
+        ShowScoretexet(x+20.0f, 350 + 100 * i, no, 40, sf::Color::White, window, &font);
+        fscanf(fp, "%s", temp);
+        ShowScoretexet(x + 70.0f, 350 + 100 * i, temp, 40, sf::Color::White, window, &font);
+        fscanf(fp, "%s", score);
+        ShowScoretexet(x + 420, 350 + 100 * i, score, 40,sf::Color::White, window, &font);
+    }
+    fclose(fp);
+
+}
 int main()
 {
-    int Score = 0, TimeCandy = 0, TimeEnemy = 0, TimeCookie = 0, TimeErase = 0, GameMode = 3;
+    int Score = 0, TimeCandy = 0, TimeEnemy = 0, TimeCookie = 0, TimeErase = 0, GameMode = 1;
     float SumTime = 0.0f,MainTime = 100.0f;
     int R1 = 0,R2 = 0;
+    string name;
     sf::RenderWindow window(sf::VideoMode(VIEW_WIDTH, VIEW_HEIGHT), "Game's Ploy", sf::Style::Titlebar | sf::Style::Close | sf::Style::Fullscreen);
     //sf::View view(sf::Vector2f(0.0f, 0.0f), sf::Vector2f(1020, 1080));
     sf::Texture playerTexture;
@@ -75,13 +142,15 @@ int main()
         Sym1_Score_p.loadFromFile("Pic/Clock.png");
     sf::Texture Sym2_Score_p;
         Sym2_Score_p.loadFromFile("Pic/2.png");
-
+    sf::Texture Scoreboard_p;
+        Scoreboard_p.loadFromFile("Pic/Scoreboard.png");
    
     Player player(&playerTexture, sf::Vector2u(20, 3), 0.075f, 400.0f,250.0f);
     
     std::vector<Platform> platforms,Item,Enemy,Candy,Pumpkin,Cookie;
     Platform Background(&Bg, sf::Vector2f(VIEW_WIDTH, VIEW_HEIGHT), sf::Vector2f(VIEW_WIDTH, VIEW_HEIGHT) / 2.0f);
     Platform state(&st, sf::Vector2f(VIEW_WIDTH, 400), sf::Vector2f(VIEW_WIDTH/2.0f, VIEW_HEIGHT+100));
+    Platform Scoreboard(&Scoreboard_p, sf::Vector2f(2000, 1100), sf::Vector2f(900, 550));
     Platform s1(&s1_pic, sf::Vector2f(300, 50), sf::Vector2f(400, 700));
     Platform s2(&s1_pic, sf::Vector2f(300, 50), sf::Vector2f(1500, 700));
     Platform b(&b_pic, sf::Vector2f(130, 130), sf::Vector2f(800, 915));
@@ -109,8 +178,32 @@ int main()
  
             if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Escape))
                 window.close();
+            if (GameMode == 1)
+            {
+                if (ev.type == sf::Event::TextEntered)
+                    name.push_back(ev.text.unicode);
+                if (!name.empty() && name.back() == 8)
+                {
+                    name.pop_back();
+                    if (!name.empty())
+                        name.pop_back();
 
+                }
+
+                if (!name.empty() && !(name.back() >= 'a' && name.back() <= 'z' || name.back() >= 'A' && name.back() <= 'Z' || name.back() >= '0' && name.back() <= '9'))
+                {
+                    name.pop_back();
+                }
+            }
         }
+
+        int x = sf::Mouse::getPosition().x;
+        int y = sf::Mouse::getPosition().y;
+        if (sf::Mouse::isButtonPressed(sf::Mouse::Left) && x >= 1105.0f && x <= 1595.0f && y >= 715.0f && y <= 885.0f)
+        {
+            GameMode = 3;
+        }
+
         if (GameMode == 3)
         {
             SumTime += deltaTime;
@@ -268,7 +361,16 @@ int main()
                     Score += 20;
                 }
 
-            if (MainTime <= 0) GameMode = 4;
+            if (MainTime <= 0)
+            {
+                GameMode = 4;
+                char temp[100];
+                strcpy(temp, name.c_str());
+                if (strlen(temp) == 0)
+                    strcpy(temp, "anonymous");
+                updatascore(temp, Score);
+            }
+            
  
             if (state.GetCollider().CheckCollider(playerCollision, direction, 1.0f))
                 player.OnCollosion(direction);
@@ -311,6 +413,13 @@ int main()
         //Draw
         
         window.clear(sf::Color(150,150,150));
+        if (GameMode == 1)
+        {
+            Background.Draw(window);
+            if(!name.empty())
+            ShowScoretexet(500, 400, name, 100,sf::Color::Magenta, window, &Font);
+            else ShowScoretexet(500, 400, "Enter Name", 100, sf::Color::Magenta, window, &Font);
+        }
         if (GameMode == 3)
         {
             Background.Draw(window);
@@ -345,14 +454,11 @@ int main()
         if (GameMode == 4)
         {
             Background.Draw(window);
+            Scoreboard.Draw(window);
+            Showscoreboard(window, 700.0f);
         }
         
         window.display();
     }
     return 0;
 }
-
-
-
-
-
